@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#bde8f7"><meta name="description" content="在天空小岛上和圆滚滚的猪猪互动，肘击、改名，为每只猪保存自己的记录。"><link rel="icon" href="favicon.svg"><title>肘肘猪 · 云朵小岛</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><a class="brand" href="./"><span class="brand-symbol">ꕤ</span> 肘肘猪 <span class="brand-note">云朵小岛</span></a><div class="header-tools"><button class="sky-toggle" id="sky-toggle" type="button" aria-pressed="false" title="切换为黑夜"><span class="sun-icon">☀</span><span class="toggle-label">白天</span></button><span class="save-label" id="save-label">记录自动保存</span></div></header>
+<main>
+<section class="play" aria-label="猪猪互动区">
+<div class="score"><span>这只猪的肘击次数</span><strong id="count">0</strong><small>所有猪累计 <b id="total">0</b> 次</small></div>
+<div class="world" id="world"><div class="night-sky" id="night-sky" aria-hidden="true"></div>
+<button class="name-tag" id="rename" title="修改名字"><span id="pig-name">小粉</span><span class="pen">✎</span></button>
+<img class="island" src="assets/island.png" alt="长着小花和植物的圆形草地" draggable="false">
+<div class="pig" id="pig"><img src="assets/pig.png" alt="四肢着地的粉色卡通猪" draggable="false"><img class="ear ear-left" src="assets/pig.png" alt="" aria-hidden="true" draggable="false"><img class="ear ear-right" src="assets/pig.png" alt="" aria-hidden="true" draggable="false"><span class="hurt-eyes" aria-hidden="true"><i class="eye-one">×</i><i class="eye-two">×</i></span></div>
+<img class="arm" id="arm" src="assets/arm.svg" alt="" draggable="false">
+<div class="effects" id="effects" aria-hidden="true"></div>
+<span class="pop" id="pop" aria-hidden="true">+1</span>
+<div class="empty-world" id="empty-world" hidden><h2>小岛在等一只猪</h2><button id="empty-add">创建第一只猪 ＋</button></div>
+</div>
+<div class="action"><button id="hit" class="hit-button"><span>肘击</span><span class="hit-icon">↘</span></button><p>点一下，肘一下 <span>·</span> 也可以按空格</p></div>
+</section>
+<aside class="sidebar"><div class="side-head"><div><span class="eyebrow">MY PIGGIES</span><h1>我的猪猪 <small id="pig-number">1</small></h1></div><span class="side-flower">✿</span></div><div id="pig-list" class="pig-list"></div><button class="add-button" id="add">＋ 创建新猪</button><p class="storage-note">每一只，都有自己的小记录。<br>记录保存在当前浏览器。</p></aside>
+</main>
+<footer><span>一座小岛，一点小快乐。</span><span>✳ &nbsp; PIGGY ISLAND</span></footer>
+<dialog id="editor"><form id="name-form"><button type="button" class="close" id="close-editor" aria-label="关闭">×</button><span class="eyebrow">PIGGY ISLAND</span><h2 id="dialog-title">认识一只新猪</h2><label for="name-input">猪猪的名字</label><input id="name-input" maxlength="20" required autocomplete="off" placeholder="起一个特别的名字"><p id="name-error" class="error" role="alert"></p><button type="submit" class="dialog-primary" id="submit-name">创建猪猪</button></form></dialog>
+<dialog id="delete-dialog"><form method="dialog"><h2>和这只猪说再见？</h2><p id="delete-description"></p><div class="dialog-actions"><button value="cancel">再想想</button><button value="delete" class="delete-confirm">删除猪猪</button></div></form></dialog>
+<div id="toast" role="status" class="toast"></div><script src="app.js"></script></body></html>
