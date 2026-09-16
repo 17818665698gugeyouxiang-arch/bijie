@@ -22,6 +22,10 @@
 @media(max-width:850px){.pig{top:17%!important}}@media(max-width:620px){.pig{top:16%!important}}
 
 /* The arm and all impact feedback share the contact phase in app.js. */
+.island-scene{position:absolute;inset:0;isolation:isolate;transform-origin:50% 65%;will-change:transform,opacity}
+.departing-scene{pointer-events:none}
+.sidebar{position:relative;z-index:20}
+.world[aria-busy="true"] .island-scene .pig,.world[aria-busy="true"] .island-scene .ear{animation-play-state:paused}
 .world.striking .arm{animation:none}
 .world.striking .pig{animation:none}
 .world.striking .hurt-eyes{visibility:hidden;animation:none}

@@ -6,17 +6,17 @@ let state={pigs:[{id:crypto.randomUUID(),name:'小粉',count:0}],selected:null};
 let storageOK=true;
 try{const raw=localStorage.getItem(KEY);if(raw){const parsed=JSON.parse(raw);if(!Array.isArray(parsed.pigs))throw Error('invalid');const names=new Set(),ids=new Set();for(const p of parsed.pigs){if(typeof p.name!=='string'||!canonical(p.name)||p.name.length>20||typeof p.id!=='string'||!Number.isSafeInteger(p.count)||p.count<0||names.has(canonical(p.name))||ids.has(p.id))throw Error('invalid');names.add(canonical(p.name));ids.add(p.id)}state=parsed}}catch(e){storageOK=false}
 if(!state.pigs.some(p=>p.id===state.selected))state.selected=state.pigs[0]?.id??null;
-let mode='add',pendingDelete=null,animationTimer,toastTimer,hitInProgress=false,armAnimation=null;
+let mode='add',pendingDelete=null,animationTimer,toastTimer,hitInProgress=false,armAnimation=null,switching=false,queuedPig=null,transitionRun=null;
 const current=()=>state.pigs.find(p=>p.id===state.selected);
 function notify(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2700)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));storageOK=true;$('save-label').textContent='记录自动保存'}catch(e){storageOK=false;$('save-label').textContent='记录暂未保存';notify('浏览器无法保存记录，请检查存储权限。')}}
-function stopAnimation(){cancelAnimationFrame(animationTimer);armAnimation?.cancel();armAnimation=null;$('world').classList.remove('striking','dizzy','impacted');$('effects').replaceChildren();hitInProgress=false;$('hit').disabled=!current()}
-function render(){const p=current();$('count').textContent=(p?.count??0).toLocaleString();$('total').textContent=state.pigs.reduce((n,p)=>n+p.count,0).toLocaleString();$('pig-name').textContent=p?.name??'';$('pig-number').textContent=state.pigs.length;$('world').classList.toggle('empty',!p);$('empty-world').hidden=!!p;$('hit').disabled=!p;$('pig-list').replaceChildren();for(const pig of state.pigs){const row=document.createElement('div');row.className='pig-row'+(pig.id===state.selected?' active':'');const button=document.createElement('button');button.className='select-pig';button.setAttribute('aria-pressed',String(pig.id===state.selected));const img=document.createElement('img');img.src='assets/pig.png';img.alt='';img.className='mini-pig';const text=document.createElement('span');text.className='row-copy';const name=document.createElement('span');name.className='row-name';name.textContent=pig.name;const count=document.createElement('span');count.className='row-count';count.textContent=pig.count.toLocaleString()+' 次肘击';text.append(name,count);button.append(img,text);button.onclick=()=>{stopAnimation();state.selected=pig.id;save();render()};const remove=document.createElement('button');remove.className='remove-pig';remove.textContent='×';remove.setAttribute('aria-label','删除 '+pig.name);remove.title='删除这只猪';remove.onclick=()=>{pendingDelete=pig.id;$('delete-dialog').returnValue='cancel';$('delete-description').textContent='删除「'+pig.name+'」后，它的 '+pig.count+' 次肘击记录也会一起删除。';$('delete-dialog').showModal()};row.append(button,remove);$('pig-list').append(row)}}
+function stopAnimation(){cancelTransition();cancelAnimationFrame(animationTimer);armAnimation?.cancel();armAnimation=null;$('world').classList.remove('striking','dizzy','impacted');$('effects').replaceChildren();hitInProgress=false;$('hit').disabled=!current()}
+function render(){const p=current();$('count').textContent=(p?.count??0).toLocaleString();$('total').textContent=state.pigs.reduce((n,p)=>n+p.count,0).toLocaleString();$('pig-name').textContent=p?.name??'';$('pig-number').textContent=state.pigs.length;$('world').classList.toggle('empty',!p);$('empty-world').hidden=!!p;$('hit').disabled=!p||switching;$('pig-list').replaceChildren();for(const pig of state.pigs){const row=document.createElement('div');row.className='pig-row'+(pig.id===state.selected?' active':'');const button=document.createElement('button');button.className='select-pig';button.setAttribute('aria-pressed',String(pig.id===state.selected));const img=document.createElement('img');img.src='assets/pig.png';img.alt='';img.className='mini-pig';const text=document.createElement('span');text.className='row-copy';const name=document.createElement('span');name.className='row-name';name.textContent=pig.name;const count=document.createElement('span');count.className='row-count';count.textContent=pig.count.toLocaleString()+' 次肘击';text.append(name,count);button.append(img,text);button.onclick=()=>switchPig(pig.id);const remove=document.createElement('button');remove.className='remove-pig';remove.textContent='×';remove.setAttribute('aria-label','删除 '+pig.name);remove.title='删除这只猪';remove.onclick=()=>{pendingDelete=pig.id;$('delete-dialog').returnValue='cancel';$('delete-description').textContent='删除「'+pig.name+'」后，它的 '+pig.count+' 次肘击记录也会一起删除。';$('delete-dialog').showModal()};row.append(button,remove);$('pig-list').append(row)}}
 function addEffect(icon,x,y,size,delay=0){const effect=document.createElement('span');effect.className='spark';effect.textContent=icon;effect.style.left=x+'%';effect.style.top=y+'%';effect.style.fontSize=size+'px';effect.style.animationDelay=delay+'ms';const angle=Math.random()*Math.PI*2;effect.style.setProperty('--x',Math.cos(angle)*(65+Math.random()*65)+'px');effect.style.setProperty('--y',Math.sin(angle)*(45+Math.random()*65)-16+'px');effect.style.setProperty('--r',(Math.random()*220-110)+'deg');$('effects').append(effect)}
 function finishHit(){const p=current();if(p&&p.count<Number.MAX_SAFE_INTEGER){p.count++;save();render()}stopAnimation()}
 function hit(){
   const p=current();
-  if(!p||hitInProgress||$('editor').open||$('delete-dialog').open||p.count>=Number.MAX_SAFE_INTEGER)return;
+  if(!p||switching||hitInProgress||$('editor').open||$('delete-dialog').open||p.count>=Number.MAX_SAFE_INTEGER)return;
   hitInProgress=true;$('hit').disabled=true;
   const world=$('world'),pig=$('pig'),arm=$('arm');
   world.classList.add('striking');
@@ -61,3 +61,40 @@ function setSky(night){document.body.classList.toggle('night',night);$('sky-togg
 $('sky-toggle').onclick=()=>setSky(!document.body.classList.contains('night'));
 window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue){try{const next=JSON.parse(e.newValue);if(Array.isArray(next.pigs)){state=next;stopAnimation();render()}}catch{}}});
 render();try{setSky(localStorage.getItem(KEY+'-sky')==='night')}catch{setSky(false)}if(storageOK)save();else{$('save-label').textContent='记录读取失败';notify('之前的记录无法读取；新操作会尝试重新保存。')}
+function lockSceneControls(locked){
+  for(const el of document.querySelectorAll('#add,#rename,.remove-pig'))el.disabled=locked;
+  $('hit').disabled=locked||hitInProgress||!current();
+  $('world').setAttribute('aria-busy',String(locked));
+}
+function cancelTransition(){
+  if(transitionRun){for(const a of transitionRun.animations)a.cancel();transitionRun.ghost.remove();transitionRun=null}
+  switching=false;queuedPig=null;lockSceneControls(false);
+}
+async function switchPig(id){
+  if(!state.pigs.some(p=>p.id===id))return;
+  if(switching){queuedPig=id;return}
+  if(id===state.selected)return;
+  stopAnimation();
+  const scene=$('island-scene'),ghost=scene.cloneNode(true);
+  ghost.removeAttribute('id');
+  ghost.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  ghost.querySelectorAll('button').forEach(el=>{el.disabled=true;el.tabIndex=-1});
+  ghost.classList.add('departing-scene');ghost.setAttribute('aria-hidden','true');
+  scene.before(ghost);
+  switching=true;state.selected=id;save();render();lockSceneControls(true);
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const duration=reduced?120:800;
+  const outgoing=ghost.animate(reduced?[{opacity:1},{opacity:0}]:[
+    {transform:'translate(0,0) scale(1)',opacity:1},
+    {transform:'translate(-112%,-4%) scale(.76)',opacity:0}
+  ],{duration,easing:'cubic-bezier(.4,0,.6,1)',fill:'both'});
+  const incoming=scene.animate(reduced?[{opacity:0},{opacity:1}]:[
+    {transform:'translate(112%,-4%) scale(.76)',opacity:0},
+    {transform:'translate(0,0) scale(1)',opacity:1}
+  ],{duration,easing:'cubic-bezier(.22,.7,.25,1)',fill:'both'});
+  const run={ghost,animations:[outgoing,incoming]};transitionRun=run;
+  await Promise.allSettled(run.animations.map(a=>a.finished));
+  if(transitionRun!==run)return;
+  const nextId=queuedPig;cancelTransition();
+  if(nextId&&nextId!==state.selected)switchPig(nextId);
+}
