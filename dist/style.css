@@ -20,3 +20,15 @@
 /* 猪的视觉主体上移，让它落在草地中央；耳朵每 5 秒轻轻摇一次。 */
 .pig{top:6%!important}.pig .ear{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:2;animation:ear-rest 5s ease-in-out infinite;will-change:transform}.pig .ear-left{clip-path:polygon(6% 15%,31% 12%,30% 36%,5% 37%);transform-origin:22% 21%}.pig .ear-right{clip-path:polygon(38% 16%,58% 15%,59% 38%,37% 38%);transform-origin:49% 22%;animation-delay:.15s}.striking .pig .ear{animation:none}@keyframes ear-rest{0%,88%,100%{transform:rotate(0)}91%{transform:rotate(-7deg) translate(-1%,1%)}95%{transform:rotate(6deg) translate(1%,0)}}
 @media(max-width:850px){.pig{top:17%!important}}@media(max-width:620px){.pig{top:16%!important}}
+
+/* The arm and all impact feedback share the contact phase in app.js. */
+.world.striking .arm{animation:none}
+.world.striking .pig{animation:none}
+.world.striking .hurt-eyes{visibility:hidden;animation:none}
+.world.impacted .hurt-eyes{visibility:visible}
+.world.impacted .pig{animation:contact-squish .54s ease-out both}
+.world.striking .pop{animation:none}
+.world .effects{z-index:15;overflow:visible}
+.impact-particle{position:absolute;display:block;line-height:1;font-weight:900;pointer-events:none;text-shadow:0 2px 2px #714527,0 0 8px #fff7b8;animation:contact-burst .65s ease-out both}
+@keyframes contact-burst{0%{opacity:1;transform:translate(-50%,-50%) scale(.7)}25%{opacity:1;transform:translate(calc(-50% + var(--dx)*.5),calc(-50% + var(--dy)*.5)) scale(1.15)}70%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.5)}}
+@keyframes contact-squish{0%{transform:scale(1)}18%{transform:translateY(3%) scale(1.07,.9)}48%{transform:scale(.98,1.04)}100%{transform:scale(1)}}
