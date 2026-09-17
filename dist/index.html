@@ -4,7 +4,7 @@
 <header><a class="brand" href="./"><span class="brand-symbol">ꕤ</span> 肘肘猪 <span class="brand-note">云朵小岛</span></a><div class="header-tools"><button class="account-button" id="account-button" type="button">登录云存档</button><button class="sky-toggle" id="sky-toggle" type="button" aria-pressed="false" title="切换为黑夜"><span class="sun-icon">☀</span><span class="toggle-label">白天</span></button><button class="speed-toggle" id="speed-toggle" type="button" aria-pressed="false" title="切换为快速肘击"><span class="speed-icon">⚡</span><span class="speed-label">缓慢肘击</span></button><span class="save-label" id="save-label">本机缓存</span></div></header>
 <main>
 <section class="play" aria-label="猪猪互动区">
-<div class="score"><span>这只猪的肘击次数</span><strong id="count">0</strong><small>所有猪累计 <b id="total">0</b> 次</small></div>
+<div class="score"><span>当前猪 · ELBOWS</span><strong id="count">0</strong><small>TOTAL ELBOWS <b id="total">0</b></small></div>
 <div class="world" id="world"><div class="night-sky" id="night-sky" aria-hidden="true"></div>
 <div class="island-scene" id="island-scene">
 <button class="name-tag" id="rename" title="修改名字"><span id="pig-name">小粉</span><span class="pen">✎</span></button>
@@ -16,9 +16,9 @@
 <span class="pop" id="pop" aria-hidden="true">+1</span>
 <div class="empty-world" id="empty-world" hidden><h2>小岛在等一只猪</h2><button id="empty-add">创建第一只猪 ＋</button></div>
 </div>
-<div class="action"><button id="hit" class="hit-button"><span>肘击</span><span class="hit-icon">↘</span></button><p>点一下，肘一下 <span>·</span> 也可以按空格</p></div>
+<div class="action"><button id="hit" class="hit-button"><span>肘击</span><span class="hit-icon">↘</span></button><p>ONE ELBOW AT A TIME <span>·</span> SPACE ALSO WORKS</p></div>
 </section>
-<aside class="sidebar"><div class="side-head"><div><span class="eyebrow">MY PIGGIES</span><h1>我的猪猪 <small id="pig-number">1</small></h1></div><span class="side-flower">✿</span></div><div id="pig-list" class="pig-list"></div><button class="add-button" id="add">＋ 创建新猪</button><p class="storage-note">每一只，都有自己的小记录。<br>记录保存在当前浏览器。</p></aside>
+<aside class="sidebar"><div class="side-head"><div><span class="eyebrow">PIG ARCHIVE</span><h1>猪猪档案 <small id="pig-number">1</small></h1></div><span class="side-flower">✿</span></div><div id="pig-list" class="pig-list"></div><button class="add-button" id="add">＋ 收录一只新猪</button><p class="storage-note">每只猪都有自己的记录。<br>登录后会同步到云端。</p></aside>
 </main>
 <footer><span>一座小岛，一点小快乐。</span><span>✳ &nbsp; PIGGY ISLAND</span></footer>
 <dialog id="editor"><form id="name-form"><button type="button" class="close" id="close-editor" aria-label="关闭">×</button><span class="eyebrow">PIGGY ISLAND</span><h2 id="dialog-title">认识一只新猪</h2><label for="name-input">猪猪的名字</label><input id="name-input" maxlength="20" required autocomplete="off" placeholder="起一个特别的名字"><p id="name-error" class="error" role="alert"></p><button type="submit" class="dialog-primary" id="submit-name">创建猪猪</button></form></dialog>
