@@ -72,7 +72,7 @@
   async function openTarget(profile){
     const serial=(state.serial||0)+1;state.serial=serial;state.pendingTarget=profile;
     try{const fresh=await getProfile(profile.user_id);if(serial!==state.serial)return;if(state.transition)return;state.transition=true;state.pendingTarget=null;
-      await game().transitionOnlineScene(()=>{state.target=fresh;updateScene()});state.transition=false;
+      await game().transitionOnlineScene(()=>{state.target=fresh;updateScene()});state.transition=false;updateScene();
       if(state.pendingTarget&&state.pendingTarget.user_id!==state.target.user_id)openTarget(state.pendingTarget);
     }catch{status('联机数据暂时没有更新',()=>openTarget(profile));state.transition=false}
   }
