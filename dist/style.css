@@ -24,6 +24,9 @@
 @media(max-width:850px){.pig{top:17%!important}}@media(max-width:620px){.pig{top:16%!important}}
 
 /* The arm and all impact feedback share the contact phase in app.js. */
+/* Every interactive button darkens on hover, including the header and dialog controls. */
+button:not(:disabled){transition:filter .16s ease,transform .16s ease,background-color .16s ease,color .16s ease}
+button:not(:disabled):hover{filter:brightness(.88) saturate(1.08)}
 .island-scene{position:absolute;inset:0;isolation:isolate;transform-origin:50% 65%;will-change:transform,opacity}
 .departing-scene{pointer-events:none}
 .sidebar{position:relative;z-index:20}
