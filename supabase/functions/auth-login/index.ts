@@ -12,7 +12,7 @@ Deno.serve(async request => {
     if (!permitted) return json(request, { code: 'rate_limited' }, 429);
     const { username, password } = await request.json();
     if (typeof username !== 'string' || !/^[A-Za-z]{1,10}$/.test(username)) return json(request, { code: 'account_not_found' }, 404);
-    if (typeof password !== 'string' || !/^\d{4,8}$/.test(password)) return json(request, { code: 'incorrect_password' }, 401);
+    if (typeof password !== 'string' || !/^\d{8,}$/.test(password)) return json(request, { code: 'incorrect_password' }, 401);
     const normalized = username.toLowerCase();
     const { data: player } = await admin.from('players').select('id').eq('username_normalized', normalized).maybeSingle();
     if (!player) return json(request, { code: 'account_not_found' }, 404);

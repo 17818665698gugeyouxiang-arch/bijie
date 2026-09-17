@@ -2,7 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { cors, json } from '../_shared/cors.ts';
 
 const usernameOK = (value: unknown) => typeof value === 'string' && /^[A-Za-z]{1,10}$/.test(value);
-const passwordOK = (value: unknown) => typeof value === 'string' && /^\d{4,8}$/.test(value);
+const passwordOK = (value: unknown) => typeof value === 'string' && /^\d{8,}$/.test(value);
 const emailFor = (username: string) => `${username}@piggy.local`;
 
 Deno.serve(async request => {

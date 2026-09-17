@@ -1,6 +1,6 @@
 # Supabase and GitHub Pages setup
 
-1. In Supabase **Authentication → Providers → Email**, keep Email enabled and turn off email confirmation. In **Password security**, set the minimum password length to `4`. The game also enforces digits only and a maximum length of 8.
+1. In Supabase **Authentication → Providers → Email**, keep Email enabled and turn off email confirmation. In **Password security**, set the minimum password length to `8`. The game also enforces digits only and accepts passwords of 8 digits or more.
 2. Open **SQL Editor**, run `supabase/migrations/001_players_and_progress.sql` once.
 3. Deploy the two Edge Functions from the project root:
    ```powershell
