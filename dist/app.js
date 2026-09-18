@@ -6,14 +6,14 @@ let state={pigs:[{id:crypto.randomUUID(),name:'小粉',count:0}],selected:null};
 let storageOK=true;
 try{const raw=localStorage.getItem(KEY);if(raw){const parsed=JSON.parse(raw);if(!Array.isArray(parsed.pigs))throw Error('invalid');const names=new Set(),ids=new Set();for(const p of parsed.pigs){if(typeof p.name!=='string'||!canonical(p.name)||p.name.length>20||typeof p.id!=='string'||!Number.isSafeInteger(p.count)||p.count<0||names.has(canonical(p.name))||ids.has(p.id))throw Error('invalid');names.add(canonical(p.name));ids.add(p.id)}state=parsed}}catch(e){storageOK=false}
 if(!state.pigs.some(p=>p.id===state.selected))state.selected=state.pigs[0]?.id??null;
-let mode='add',pendingDelete=null,animationTimer,toastTimer,captionTimer,hitCompleteHandler=null,hitInProgress=false,armAnimation=null,switching=false,queuedPig=null,transitionRun=null,hitSpeed='slow';
+let mode='add',pendingDelete=null,animationTimer,animationFinishTimer,toastTimer,captionTimer,hitCompleteHandler=null,hitInProgress=false,armAnimation=null,switching=false,queuedPig=null,transitionRun=null,hitSpeed='slow';
 const current=()=>state.pigs.find(p=>p.id===state.selected);
 function notify(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2700)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));storageOK=true;$('save-label').textContent=cloud?.player?'云存档待同步':'本机缓存';queueCloudSync?.()}catch(e){storageOK=false;$('save-label').textContent='记录暂未保存';notify('浏览器无法保存记录，请检查存储权限。')}}
-function stopAnimation(){cancelTransition();cancelAnimationFrame(animationTimer);armAnimation?.cancel();armAnimation=null;hitCompleteHandler=null;$('world').classList.remove('striking','dizzy','impacted','fast-hit');$('effects').replaceChildren();hitInProgress=false;$('hit').disabled=!current()}
+function stopAnimation(){cancelTransition();cancelAnimationFrame(animationTimer);clearTimeout(animationFinishTimer);armAnimation?.cancel();armAnimation=null;hitCompleteHandler=null;$('world').classList.remove('striking','dizzy','impacted','fast-hit');$('effects').replaceChildren();hitInProgress=false;$('hit').disabled=!current()}
 function render(){const p=current();$('count').textContent=(p?.count??0).toLocaleString();$('total').textContent=state.pigs.reduce((n,p)=>n+p.count,0).toLocaleString();$('pig-name').textContent=p?.name??'';$('pig-number').textContent=state.pigs.length;$('world').classList.toggle('empty',!p);$('empty-world').hidden=!!p;$('hit').disabled=!p||switching;$('pig-list').replaceChildren();for(const pig of state.pigs){const row=document.createElement('div');row.className='pig-row'+(pig.id===state.selected?' active':'');const button=document.createElement('button');button.className='select-pig';button.setAttribute('aria-pressed',String(pig.id===state.selected));const img=document.createElement('img');img.src='assets/pig.png';img.alt='';img.className='mini-pig';const text=document.createElement('span');text.className='row-copy';const name=document.createElement('span');name.className='row-name';name.textContent=pig.name;const count=document.createElement('span');count.className='row-count';count.textContent=pig.count.toLocaleString()+' 次肘击';text.append(name,count);button.append(img,text);button.onclick=()=>switchPig(pig.id);const remove=document.createElement('button');remove.className='remove-pig';remove.textContent='×';remove.setAttribute('aria-label','删除 '+pig.name);remove.title='删除这只猪';remove.onclick=()=>{pendingDelete=pig.id;$('delete-dialog').returnValue='cancel';$('delete-description').textContent='删除「'+pig.name+'」后，它的 '+pig.count+' 次肘击记录也会一起删除。';$('delete-dialog').showModal()};row.append(button,remove);$('pig-list').append(row)}}
 function addEffect(icon,x,y,size,delay=0){const effect=document.createElement('span');effect.className='spark';effect.textContent=icon;effect.style.left=x+'%';effect.style.top=y+'%';effect.style.fontSize=size+'px';effect.style.animationDelay=delay+'ms';const angle=Math.random()*Math.PI*2;effect.style.setProperty('--x',Math.cos(angle)*(65+Math.random()*65)+'px');effect.style.setProperty('--y',Math.sin(angle)*(45+Math.random()*65)-16+'px');effect.style.setProperty('--r',(Math.random()*220-110)+'deg');$('effects').append(effect)}
-function finishHit(){const handler=hitCompleteHandler;hitCompleteHandler=null;if(handler)handler();else{const p=current();if(p&&p.count<Number.MAX_SAFE_INTEGER){p.count++;save();render()}}stopAnimation()}
+function finishHit(){if(!hitInProgress)return;const handler=hitCompleteHandler;hitCompleteHandler=null;if(handler)handler();else{const p=current();if(p&&p.count<Number.MAX_SAFE_INTEGER){p.count++;save();render()}}stopAnimation()}
 function showImpactCaption(fast){
   if(Math.random()>=.16)return;
   const captions=fast?['啪 啪 啪','Still here.','Nothing personal.']:['啪.','又一下。','猪看起来没有意见。','Probably fine.'];
@@ -35,7 +35,7 @@ function hit(){
   const x=pig.offsetLeft+pig.offsetWidth*.64,y=pig.offsetTop+pig.offsetHeight*.38;
   const size=world.clientWidth*.30,lift=size*.85;
   Object.assign(arm.style,{width:size+'px',height:size+'px',left:(x-size*.50)+'px',top:(y-size*.82)+'px'});
-  const fast=hitSpeed==='fast',duration=fast?1000/3:1000,contact=duration*.32,particles=Math.random()<(fast ? .8 : .5);
+  const fast=hitSpeed==='fast',duration=fast?1000/3:1000,contact=duration*.32,particles=Math.random()<(fast ? .8 : .5),startedAt=performance.now();
   world.classList.toggle('fast-hit',fast);
   armAnimation=arm.animate([
     {offset:0,opacity:0,transform:`translateY(${-lift}px)`},
@@ -46,7 +46,7 @@ function hit(){
   ],{duration,easing:'linear',fill:'both'});
   const step=()=>{
     if(!hitInProgress||!armAnimation)return;
-    const time=Number(armAnimation.currentTime)||0;
+    // Wall-clock timing prevents a finished browser animation from leaving the impact state active.\r\n    const time=performance.now()-startedAt;
     if(time>=contact-.1&&!world.classList.contains('impacted')){
       world.classList.add('impacted','dizzy');
       showImpactCaption(fast);
@@ -64,6 +64,8 @@ function hit(){
     animationTimer=requestAnimationFrame(step);
   };
   animationTimer=requestAnimationFrame(step);
+  // Fallback handles browsers that pause requestAnimationFrame after the arm animation ends.
+  animationFinishTimer=setTimeout(finishHit,duration+90);
 }
 function playOnlineHit(onComplete){if(hitInProgress)return false;hitCompleteHandler=onComplete;hit();if(!hitInProgress){hitCompleteHandler=null;return false}return true}
 function edit(action){mode=action;const p=current();if(action==='rename'&&!p)return;$('dialog-title').textContent=action==='add'?'认识一只新猪':'给猪猪改个名字';$('submit-name').textContent=action==='add'?'创建猪猪':'保存名字';$('name-input').value=action==='add'?'':p.name;$('name-error').textContent='';$('editor').showModal();$('name-input').focus();$('name-input').select()}
